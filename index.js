@@ -46,10 +46,18 @@ const generateId = (max) => {
 
 app.post('/api/persons', (req, res) => {
   const body = req.body
-  console.log(body.name)
-  if (!body.name) {
+  if (body.name === undefined) {
     return res.status(400).json({
       error: 'name missing'
+    })
+  } else if (body.number === undefined) {
+    return res.status(400).json({
+      error: 'number missing'
+    })
+  //If person exists
+  } else if (persons.some(person => person.name === body.name)) {
+    return res.status(400).json({
+      error: 'name already exists'
     })
   }
   const person = {

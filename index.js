@@ -1,7 +1,7 @@
 const express = require('express')
-const app = express()
+const morgan = require('morgan')
 
-app.use(express.json())
+const app = express()
 
 let persons = [
   {
@@ -25,6 +25,14 @@ let persons = [
     "id": 4
   }
 ]
+
+app.use(express.json())
+
+morgan.token('person', (req, res) => {
+  return JSON.stringify(req.body)
+})
+var morganLogger =  ':method :url :status :res[content-length] - :response-time ms :person'
+app.use(morgan(morganLogger))
 
 app.get('/api/persons', (req, res) => {
   res.json(persons)

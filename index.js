@@ -39,7 +39,7 @@ app.get('/api/persons/:id', (req, res, next) => {
   Person.findById(req.params.id)
     .then(person => {
       if (person) {
-        res.json(person)
+        res.json(person.toJSON())
       } else {
         res.status(404).end()
       }
@@ -47,7 +47,7 @@ app.get('/api/persons/:id', (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
 
   const body = req.body
   if (body.name === undefined) {
@@ -65,8 +65,9 @@ app.post('/api/persons', (req, res) => {
   })
   console.log(person)
   person.save().then(savedPerson => {
-    res.json(savedPerson)
+    res.json(savedPerson.toJSON())
   })
+  .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
@@ -87,7 +88,7 @@ app.put('/api/persons/:id', (req, res, next) => {
 
   Person.findByIdAndUpdate(req.params.id, person, {new: true})
     .then(updatedPerson => {
-      res.json(updatedPerson)
+      res.json(updatedPerson.toJSON())
     })
     .catch(error => {next(error)})
 })

@@ -10,6 +10,17 @@ app.use(express.json())
 app.use(cors())
 app.use(express.static('build'))
 
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError' && error.kind === 'ObjectId') {
+    return res.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return res.status(400).json({ error: error.message })
+  }
+  next(error)
+}
+
 morgan.token('person', (req, res) => {
   return JSON.stringify(req.body)
 })
@@ -24,14 +35,16 @@ app.get('/api/persons', (req, res) => {
   })
 })
 
-app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const person = persons.find(person => person.id === id)
-  if (person) {
-    res.send(person)
-  } else {
-    res.status(404).end()
-  }
+app.get('/api/persons/:id', (req, res, next) => {
+  Person.findById(req.params.id)
+    .then(person => {
+      if (person) {
+        res.json(person)
+      } else {
+        res.status(404).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
 app.post('/api/persons', (req, res) => {
@@ -44,10 +57,6 @@ app.post('/api/persons', (req, res) => {
   } else if (body.number === undefined) {
     return res.status(400).json({
       error: 'number missing'
-    })
-  } else if (persons.some(person => person.name === body.name)) {
-    return res.status(400).json({
-      error: 'name already exists'
     })
   }
   const person = new Person({
@@ -68,11 +77,31 @@ app.delete('/api/persons/:id', (req, res, next) => {
     .catch(error => next(error))
 })
 
-app.get('/info', (req, res) => {
-  res.write(`<p>Phonebook has info for ${persons.length} people</p>`)
-  res.write(Date())
-  res.end()
+app.put('/api/persons/:id', (req, res, next) => {
+  const body = req.body
+
+  const person = {
+    name: body.name,
+    number: body.number
+  }
+
+  Person.findByIdAndUpdate(req.params.id, person, {new: true})
+    .then(updatedPerson => {
+      res.json(updatedPerson)
+    })
+    .catch(error => {next(error)})
 })
+
+app.get('/info', (req, res) => {
+  Person.find({})
+    .then(result => {
+      res.write(`<p>Phonebook has info for ${result.length} people</p>`)
+      res.write(Date())
+      res.end()
+    })
+})
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {

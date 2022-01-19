@@ -55,11 +55,8 @@ app.get('/api/persons/:id', (req, res) => {
   }
 })
 
-const generateId = (max) => {
-  return Math.floor(Math.random() * max)
-}
-
 app.post('/api/persons', (req, res) => {
+
   const body = req.body
   if (body.name === undefined) {
     return res.status(400).json({
@@ -69,19 +66,19 @@ app.post('/api/persons', (req, res) => {
     return res.status(400).json({
       error: 'number missing'
     })
-  //If person exists
   } else if (persons.some(person => person.name === body.name)) {
     return res.status(400).json({
       error: 'name already exists'
     })
   }
-  const person = {
+  const person = new Person({
     name: body.name,
-    number: body.number,
-    id: generateId(1000),
-  }
-  persons = persons.concat(person)
-  res.json(person)
+    number: body.number
+  })
+  console.log(person)
+  person.save().then(savedPerson => {
+    res.json(savedPerson)
+  })
 })
 
 app.delete('/api/persons/:id', (req, res) => {

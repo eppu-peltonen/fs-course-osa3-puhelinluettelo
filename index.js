@@ -21,7 +21,7 @@ const errorHandler = (error, req, res, next) => {
   next(error)
 }
 
-morgan.token('person', (req, res) => {
+morgan.token('person', (req) => {
   return JSON.stringify(req.body)
 })
 var morganLogger =  ':method :url :status :res[content-length] - :response-time ms :person'
@@ -67,12 +67,12 @@ app.post('/api/persons', (req, res, next) => {
   person.save().then(savedPerson => {
     res.json(savedPerson.toJSON())
   })
-  .catch(error => next(error))
+    .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (req, res, next) => {
+app.delete('/api/persons/:id', (req, next) => {
   Person.findByIdAndRemove(req.params.id)
-    .then(result => {
+    .then(res => {
       res.status(204).end()
     })
     .catch(error => next(error))
